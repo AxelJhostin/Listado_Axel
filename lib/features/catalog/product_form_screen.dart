@@ -31,6 +31,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   String? _imagePath;
   List<Distributor> _allDistributors = [];
   final Set<Id> _selectedDistributorIds = {};
+  bool _needsPurchase = false;
 
   bool get _isEditing => widget.product != null;
 
@@ -53,6 +54,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         _descController.text = product.description!;
       }
       _imagePath = product.localImagePath;
+      _needsPurchase = product.needsPurchase;
       await product.distributors.load();
       _selectedDistributorIds.addAll(
         product.distributors.map((d) => d.id),
@@ -89,6 +91,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         ? null
         : _descController.text.trim();
     product.localImagePath = _imagePath;
+    product.needsPurchase = _needsPurchase;
 
     await IsarService.instance.saveProduct(
       product,
@@ -203,6 +206,27 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
+            const SizedBox(height: 24),
+            SwitchListTile(
+              value: _needsPurchase,
+              activeThumbColor: AppTheme.primary,
+              onChanged: (value) => setState(() => _needsPurchase = value),
+              title: const Text(
+                'Agregar a lista de compras',
+                style: TextStyle(
+                  fontSize: AppTheme.fontBody,
+                  color: AppTheme.onSurface,
+                ),
+              ),
+              subtitle: const Text(
+                'Marcar si necesitas comprar este producto',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppTheme.onSurfaceMuted,
+                ),
+              ),
+              contentPadding: EdgeInsets.zero,
+            ),
             const SizedBox(height: 32),
             FilledButton(
               onPressed: _save,

@@ -18,6 +18,9 @@ class Product {
   @Index()
   bool isChecked = false;
 
+  @Index()
+  bool needsPurchase = false;
+
   int? purchasedQuantity;
   double? purchasePrice;
 

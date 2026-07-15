@@ -11,4 +11,10 @@ class Distributor {
 
   String? locationNotes;
   String? phoneNumber;
+
+  double? latitude;
+  double? longitude;
+
+  @ignore
+  bool get hasGpsLocation => latitude != null && longitude != null;
 }

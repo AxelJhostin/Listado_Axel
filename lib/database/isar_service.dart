@@ -2,6 +2,7 @@ import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../models/distributor.dart';
+import '../models/needed_item.dart';
 import '../models/product.dart';
 
 class IsarService {
@@ -19,7 +20,7 @@ class IsarService {
   Future<Isar> _open() async {
     final dir = await getApplicationDocumentsDirectory();
     return Isar.open(
-      [DistributorSchema, ProductSchema],
+      [DistributorSchema, ProductSchema, NeededItemSchema],
       directory: dir.path,
       inspector: true,
     );
@@ -42,17 +43,42 @@ class IsarService {
 
   Future<List<Product>> getProducts({required bool checked}) async {
     final isar = await db;
-    final products = await isar.products
-        .filter()
-        .isCheckedEqualTo(checked)
-        .sortByName()
-        .findAll();
+    final query = isar.products.filter().isCheckedEqualTo(checked);
+    final products = checked
+        ? await query.sortByName().findAll()
+        : await query
+            .needsPurchaseEqualTo(true)
+            .sortByName()
+            .findAll();
 
     for (final product in products) {
       await product.distributors.load();
       await product.finalDistributor.load();
     }
     return products;
+  }
+
+  Future<List<Product>> getCatalogProductsNotOnList() async {
+    final isar = await db;
+    final products = await isar.products
+        .filter()
+        .isCheckedEqualTo(false)
+        .needsPurchaseEqualTo(false)
+        .sortByName()
+        .findAll();
+
+    for (final product in products) {
+      await product.distributors.load();
+    }
+    return products;
+  }
+
+  Future<void> setNeedsPurchase(Product product, bool needsPurchase) async {
+    final isar = await db;
+    await isar.writeTxn(() async {
+      product.needsPurchase = needsPurchase;
+      await isar.products.put(product);
+    });
   }
 
   Future<List<Product>> getAllProducts() async {
@@ -93,6 +119,7 @@ class IsarService {
     final isar = await db;
     await isar.writeTxn(() async {
       product.isChecked = true;
+      product.needsPurchase = false;
       product.purchasedQuantity = quantity;
       product.purchasePrice = price;
 
@@ -110,6 +137,7 @@ class IsarService {
     final isar = await db;
     await isar.writeTxn(() async {
       product.isChecked = false;
+      product.needsPurchase = true;
       product.purchasedQuantity = null;
       product.purchasePrice = null;
       product.finalDistributor.value = null;
@@ -121,5 +149,32 @@ class IsarService {
   Future<void> deleteProduct(Id id) async {
     final isar = await db;
     await isar.writeTxn(() => isar.products.delete(id));
+  }
+
+  Future<List<NeededItem>> getActiveNeededItems() async {
+    final isar = await db;
+    return isar.neededItems
+        .filter()
+        .isDoneEqualTo(false)
+        .sortByName()
+        .findAll();
+  }
+
+  Future<Id> saveNeededItem(NeededItem item) async {
+    final isar = await db;
+    return isar.writeTxn(() => isar.neededItems.put(item));
+  }
+
+  Future<void> markNeededItemDone(NeededItem item) async {
+    final isar = await db;
+    await isar.writeTxn(() async {
+      item.isDone = true;
+      await isar.neededItems.put(item);
+    });
+  }
+
+  Future<void> deleteNeededItem(Id id) async {
+    final isar = await db;
+    await isar.writeTxn(() => isar.neededItems.delete(id));
   }
 }

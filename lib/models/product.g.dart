@@ -42,13 +42,18 @@ const ProductSchema = CollectionSchema(
       name: r'name',
       type: IsarType.string,
     ),
-    r'purchasePrice': PropertySchema(
+    r'needsPurchase': PropertySchema(
       id: 5,
+      name: r'needsPurchase',
+      type: IsarType.bool,
+    ),
+    r'purchasePrice': PropertySchema(
+      id: 6,
       name: r'purchasePrice',
       type: IsarType.double,
     ),
     r'purchasedQuantity': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'purchasedQuantity',
       type: IsarType.long,
     )
@@ -80,6 +85,19 @@ const ProductSchema = CollectionSchema(
       properties: [
         IndexPropertySchema(
           name: r'isChecked',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'needsPurchase': IndexSchema(
+      id: 2386219678428639755,
+      name: r'needsPurchase',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'needsPurchase',
           type: IndexType.value,
           caseSensitive: false,
         )
@@ -140,8 +158,9 @@ void _productSerialize(
   writer.writeBool(offsets[2], object.isChecked);
   writer.writeString(offsets[3], object.localImagePath);
   writer.writeString(offsets[4], object.name);
-  writer.writeDouble(offsets[5], object.purchasePrice);
-  writer.writeLong(offsets[6], object.purchasedQuantity);
+  writer.writeBool(offsets[5], object.needsPurchase);
+  writer.writeDouble(offsets[6], object.purchasePrice);
+  writer.writeLong(offsets[7], object.purchasedQuantity);
 }
 
 Product _productDeserialize(
@@ -157,8 +176,9 @@ Product _productDeserialize(
   object.isChecked = reader.readBool(offsets[2]);
   object.localImagePath = reader.readStringOrNull(offsets[3]);
   object.name = reader.readString(offsets[4]);
-  object.purchasePrice = reader.readDoubleOrNull(offsets[5]);
-  object.purchasedQuantity = reader.readLongOrNull(offsets[6]);
+  object.needsPurchase = reader.readBool(offsets[5]);
+  object.purchasePrice = reader.readDoubleOrNull(offsets[6]);
+  object.purchasedQuantity = reader.readLongOrNull(offsets[7]);
   return object;
 }
 
@@ -180,8 +200,10 @@ P _productDeserializeProp<P>(
     case 4:
       return (reader.readString(offset)) as P;
     case 5:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 6:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 7:
       return (reader.readLongOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -223,6 +245,14 @@ extension ProductQueryWhereSort on QueryBuilder<Product, Product, QWhere> {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'isChecked'),
+      );
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhere> anyNeedsPurchase() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'needsPurchase'),
       );
     });
   }
@@ -468,6 +498,51 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
               indexName: r'isChecked',
               lower: [],
               upper: [isChecked],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> needsPurchaseEqualTo(
+      bool needsPurchase) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'needsPurchase',
+        value: [needsPurchase],
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> needsPurchaseNotEqualTo(
+      bool needsPurchase) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'needsPurchase',
+              lower: [],
+              upper: [needsPurchase],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'needsPurchase',
+              lower: [needsPurchase],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'needsPurchase',
+              lower: [needsPurchase],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'needsPurchase',
+              lower: [],
+              upper: [needsPurchase],
               includeUpper: false,
             ));
       }
@@ -1037,6 +1112,16 @@ extension ProductQueryFilter
     });
   }
 
+  QueryBuilder<Product, Product, QAfterFilterCondition> needsPurchaseEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'needsPurchase',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterFilterCondition> purchasePriceIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1333,6 +1418,18 @@ extension ProductQuerySortBy on QueryBuilder<Product, Product, QSortBy> {
     });
   }
 
+  QueryBuilder<Product, Product, QAfterSortBy> sortByNeedsPurchase() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'needsPurchase', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByNeedsPurchaseDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'needsPurchase', Sort.desc);
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterSortBy> sortByPurchasePrice() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'purchasePrice', Sort.asc);
@@ -1432,6 +1529,18 @@ extension ProductQuerySortThenBy
     });
   }
 
+  QueryBuilder<Product, Product, QAfterSortBy> thenByNeedsPurchase() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'needsPurchase', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByNeedsPurchaseDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'needsPurchase', Sort.desc);
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterSortBy> thenByPurchasePrice() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'purchasePrice', Sort.asc);
@@ -1493,6 +1602,12 @@ extension ProductQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Product, Product, QDistinct> distinctByNeedsPurchase() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'needsPurchase');
+    });
+  }
+
   QueryBuilder<Product, Product, QDistinct> distinctByPurchasePrice() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'purchasePrice');
@@ -1541,6 +1656,12 @@ extension ProductQueryProperty
   QueryBuilder<Product, String, QQueryOperations> nameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'name');
+    });
+  }
+
+  QueryBuilder<Product, bool, QQueryOperations> needsPurchaseProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'needsPurchase');
     });
   }
 

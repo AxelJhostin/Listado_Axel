@@ -17,18 +17,28 @@ const DistributorSchema = CollectionSchema(
   name: r'Distributor',
   id: 7244026236680812209,
   properties: {
-    r'locationNotes': PropertySchema(
+    r'latitude': PropertySchema(
       id: 0,
+      name: r'latitude',
+      type: IsarType.double,
+    ),
+    r'locationNotes': PropertySchema(
+      id: 1,
       name: r'locationNotes',
       type: IsarType.string,
     ),
+    r'longitude': PropertySchema(
+      id: 2,
+      name: r'longitude',
+      type: IsarType.double,
+    ),
     r'name': PropertySchema(
-      id: 1,
+      id: 3,
       name: r'name',
       type: IsarType.string,
     ),
     r'phoneNumber': PropertySchema(
-      id: 2,
+      id: 4,
       name: r'phoneNumber',
       type: IsarType.string,
     )
@@ -89,9 +99,11 @@ void _distributorSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.locationNotes);
-  writer.writeString(offsets[1], object.name);
-  writer.writeString(offsets[2], object.phoneNumber);
+  writer.writeDouble(offsets[0], object.latitude);
+  writer.writeString(offsets[1], object.locationNotes);
+  writer.writeDouble(offsets[2], object.longitude);
+  writer.writeString(offsets[3], object.name);
+  writer.writeString(offsets[4], object.phoneNumber);
 }
 
 Distributor _distributorDeserialize(
@@ -102,9 +114,11 @@ Distributor _distributorDeserialize(
 ) {
   final object = Distributor();
   object.id = id;
-  object.locationNotes = reader.readStringOrNull(offsets[0]);
-  object.name = reader.readString(offsets[1]);
-  object.phoneNumber = reader.readStringOrNull(offsets[2]);
+  object.latitude = reader.readDoubleOrNull(offsets[0]);
+  object.locationNotes = reader.readStringOrNull(offsets[1]);
+  object.longitude = reader.readDoubleOrNull(offsets[2]);
+  object.name = reader.readString(offsets[3]);
+  object.phoneNumber = reader.readStringOrNull(offsets[4]);
   return object;
 }
 
@@ -116,10 +130,14 @@ P _distributorDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 2:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -417,6 +435,88 @@ extension DistributorQueryFilter
   }
 
   QueryBuilder<Distributor, Distributor, QAfterFilterCondition>
+      latitudeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'latitude',
+      ));
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QAfterFilterCondition>
+      latitudeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'latitude',
+      ));
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QAfterFilterCondition> latitudeEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'latitude',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QAfterFilterCondition>
+      latitudeGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'latitude',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QAfterFilterCondition>
+      latitudeLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'latitude',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QAfterFilterCondition> latitudeBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'latitude',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QAfterFilterCondition>
       locationNotesIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -566,6 +666,90 @@ extension DistributorQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'locationNotes',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QAfterFilterCondition>
+      longitudeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'longitude',
+      ));
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QAfterFilterCondition>
+      longitudeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'longitude',
+      ));
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QAfterFilterCondition>
+      longitudeEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'longitude',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QAfterFilterCondition>
+      longitudeGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'longitude',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QAfterFilterCondition>
+      longitudeLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'longitude',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QAfterFilterCondition>
+      longitudeBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'longitude',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -864,6 +1048,18 @@ extension DistributorQueryLinks
 
 extension DistributorQuerySortBy
     on QueryBuilder<Distributor, Distributor, QSortBy> {
+  QueryBuilder<Distributor, Distributor, QAfterSortBy> sortByLatitude() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'latitude', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QAfterSortBy> sortByLatitudeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'latitude', Sort.desc);
+    });
+  }
+
   QueryBuilder<Distributor, Distributor, QAfterSortBy> sortByLocationNotes() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'locationNotes', Sort.asc);
@@ -874,6 +1070,18 @@ extension DistributorQuerySortBy
       sortByLocationNotesDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'locationNotes', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QAfterSortBy> sortByLongitude() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'longitude', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QAfterSortBy> sortByLongitudeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'longitude', Sort.desc);
     });
   }
 
@@ -916,6 +1124,18 @@ extension DistributorQuerySortThenBy
     });
   }
 
+  QueryBuilder<Distributor, Distributor, QAfterSortBy> thenByLatitude() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'latitude', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QAfterSortBy> thenByLatitudeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'latitude', Sort.desc);
+    });
+  }
+
   QueryBuilder<Distributor, Distributor, QAfterSortBy> thenByLocationNotes() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'locationNotes', Sort.asc);
@@ -926,6 +1146,18 @@ extension DistributorQuerySortThenBy
       thenByLocationNotesDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'locationNotes', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QAfterSortBy> thenByLongitude() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'longitude', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QAfterSortBy> thenByLongitudeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'longitude', Sort.desc);
     });
   }
 
@@ -956,11 +1188,23 @@ extension DistributorQuerySortThenBy
 
 extension DistributorQueryWhereDistinct
     on QueryBuilder<Distributor, Distributor, QDistinct> {
+  QueryBuilder<Distributor, Distributor, QDistinct> distinctByLatitude() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'latitude');
+    });
+  }
+
   QueryBuilder<Distributor, Distributor, QDistinct> distinctByLocationNotes(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'locationNotes',
           caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Distributor, Distributor, QDistinct> distinctByLongitude() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'longitude');
     });
   }
 
@@ -987,9 +1231,21 @@ extension DistributorQueryProperty
     });
   }
 
+  QueryBuilder<Distributor, double?, QQueryOperations> latitudeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'latitude');
+    });
+  }
+
   QueryBuilder<Distributor, String?, QQueryOperations> locationNotesProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'locationNotes');
+    });
+  }
+
+  QueryBuilder<Distributor, double?, QQueryOperations> longitudeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'longitude');
     });
   }
 

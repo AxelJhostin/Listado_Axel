@@ -57,6 +57,24 @@ class _CatalogScreenState extends State<CatalogScreen> {
     await _load();
   }
 
+  Future<void> _toggleNeedsPurchase(Product product) async {
+    final newValue = !product.needsPurchase;
+    await IsarService.instance.setNeedsPurchase(product, newValue);
+    await _load();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            newValue
+                ? '${product.name} agregado a la lista'
+                : '${product.name} quitado de la lista',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final filtered = _filteredProducts;
@@ -104,6 +122,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
         itemBuilder: (_, i) => _CatalogProductCard(
           product: filtered[i],
           onTap: () => _openForm(filtered[i]),
+          onToggleNeedsPurchase: () => _toggleNeedsPurchase(filtered[i]),
         ),
       ),
     );
@@ -140,41 +159,81 @@ class _CatalogScreenState extends State<CatalogScreen> {
 }
 
 class _CatalogProductCard extends StatelessWidget {
-  const _CatalogProductCard({required this.product, required this.onTap});
+  const _CatalogProductCard({
+    required this.product,
+    required this.onTap,
+    required this.onToggleNeedsPurchase,
+  });
 
   final Product product;
   final VoidCallback onTap;
+  final VoidCallback onToggleNeedsPurchase;
 
   @override
   Widget build(BuildContext context) {
+    final onList = product.needsPurchase;
+
     return Card(
-      child: Semantics(
-        button: true,
-        label: 'Editar producto ${product.name}',
-        child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 4,
-          ),
-          title: Text(
-            product.name,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          subtitle: product.description != null
-              ? Text(
-                  product.description!,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                )
-              : null,
-          trailing: Icon(
-            Icons.chevron_right_rounded,
-            size: 22,
-            color: AppTheme.onSurfaceMuted,
-          ),
-          onTap: onTap,
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 4,
         ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                product.name,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            if (onList)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryTint,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  'En lista',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.primary,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        subtitle: product.description != null
+            ? Text(
+                product.description!,
+                style: Theme.of(context).textTheme.bodyMedium,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )
+            : null,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              onPressed: onToggleNeedsPurchase,
+              tooltip: onList ? 'Quitar de lista' : 'Agregar a lista',
+              icon: Icon(
+                onList
+                    ? Icons.remove_shopping_cart_rounded
+                    : Icons.add_shopping_cart_rounded,
+                color: onList ? AppTheme.warning : AppTheme.primary,
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              size: 22,
+              color: AppTheme.onSurfaceMuted,
+            ),
+          ],
+        ),
+        onTap: onTap,
       ),
     );
   }

@@ -2,16 +2,27 @@
 
 Aplicación móvil **offline-first** para comerciantes que gestionan compras de mercadería directamente en distribuidores. Reemplaza las listas de papel con una herramienta local, rápida y accesible.
 
+## Propósito de la app
+
+La app sirve para **armar la lista de lo que falta comprar** antes de ir al mercado:
+
+- **Catálogo** = productos que ya conoces (referencia con foto, stock, distribuidores). No implica que haya que comprarlos hoy.
+- **Por Comprar** = solo lo que **activamente necesitas** (productos marcados + faltantes rápidos).
+- **Ya Comprados** = lo comprado en la salida actual.
+
 ## Características principales
 
 - **100 % local**: sin conexión a internet en el mercado (Isar + archivos en disco).
 - **Tres pestañas claras**: Compras, Catálogo y Distribuidores.
-- **Flujo de Check**: registrar cantidad, precio y distribuidor al comprar un producto.
-- Búsqueda en tiempo real: filtra productos por nombre en Compras y en el Catálogo.
+- **Lista intencional**: los productos del catálogo no aparecen en Por Comprar hasta marcarlos como necesarios.
+- **Faltantes rápidos**: anotar en segundos algo que falta sin registrarlo en el catálogo.
+- **Flujo de Check**: registrar cantidad, precio y distribuidor al comprar un producto del catálogo.
+- Búsqueda en tiempo real: filtra ítems por nombre en Compras y en el Catálogo.
 - **Deshacer compra**: revierte un producto de Ya Comprados a Por Comprar.
 - **Banner de resumen del día**: total de unidades y dinero invertido, actualizado en vivo.
 - **Compartir resumen**: exporta el reporte del día por WhatsApp, Telegram, correo o notas.
 - **Fotos de productos**: cámara o galería, guardadas en almacenamiento interno.
+- **GPS en distribuidores**: captura ubicación actual y abre el punto en Google Maps.
 - **UX accesible**: textos grandes, alto contraste, botones táctiles amplios (mín. 48×48 dp).
 
 ## Stack tecnológico
@@ -21,6 +32,7 @@ Aplicación móvil **offline-first** para comerciantes que gestionan compras de 
 | Framework         | Flutter (Material 3)                |
 | Base de datos     | Isar (NoSQL local)                  |
 | Fotos             | `image_picker` + `path_provider`    |
+| Ubicación         | `geolocator` + `url_launcher`       |
 | Compartir         | `share_plus`                        |
 | Arquitectura      | Feature-first                       |
 
@@ -31,8 +43,10 @@ lib/
 ├── main.dart
 ├── widgets/product_search_bar.dart
 ├── database/isar_service.dart
+├── services/location_service.dart
 ├── models/
 │   ├── distributor.dart
+│   ├── needed_item.dart
 │   └── product.dart
 ├── theme/app_theme.dart
 └── features/
@@ -47,24 +61,30 @@ lib/
 
 | Función              | Descripción |
 |----------------------|-------------|
-| Búsqueda (Compras)   | Barra superior que filtra por nombre en **Por Comprar** y **Ya Comprados**. |
-| Búsqueda (Catálogo) | Barra superior que filtra el inventario general por nombre en tiempo real. |
-| Check de compra      | Diálogo con cantidad (+/−), precio y distribuidor. |
-| Deshacer             | Botón en tarjetas de Ya Comprados; limpia datos de compra y restaura `isChecked = false`. |
+| Por Comprar          | Solo productos con `needsPurchase = true` y faltantes rápidos activos. |
+| Agregar del catálogo | Picker con búsqueda sobre productos que aún no están en la lista. |
+| Faltante rápido      | Diálogo mínimo (nombre, cantidad y notas) mezclado en Por Comprar. |
+| Marcar en catálogo   | Botón en cada tarjeta del catálogo para agregar/quitar de la lista. |
+| Quitar de lista      | Botón en tarjetas de Por Comprar sin borrar el producto del catálogo. |
+| Check de compra      | Diálogo con cantidad (+/−), precio y distribuidor (productos del catálogo). |
+| Conseguido           | Marca un faltante rápido como hecho y lo quita de la lista. |
+| Deshacer             | Botón en tarjetas de Ya Comprados; restaura `needsPurchase = true`. |
 | Banner resumen       | Muestra unidades totales y monto invertido (Σ cantidad × precio). |
-| Compartir            | Botón en AppBar (pestaña Ya Comprados) genera reporte en texto plano y abre el share nativo. |
+| Compartir            | Botón en AppBar (pestaña Ya Comprados) genera reporte en texto plano. |
 
 ## Diagrama Entidad-Relación (ERD)
 
-Modelos de datos y relaciones Isar entre `Product` y `Distributor`.
+Modelos de datos y relaciones Isar.
 
 ```mermaid
 erDiagram
     DISTRIBUTOR {
         int id PK "Isar autoIncrement"
         string name "Obligatorio, indexado"
-        string locationNotes "Opcional — pasillo, local, dirección"
+        string locationNotes "Opcional — complemento de ubicación"
         string phoneNumber "Opcional"
+        double latitude "Opcional — GPS"
+        double longitude "Opcional — GPS"
     }
 
     PRODUCT {
@@ -73,9 +93,19 @@ erDiagram
         int currentStock "Opcional — stock en tienda"
         string description "Opcional — notas cortas"
         string localImagePath "Opcional — ruta local de la foto"
-        bool isChecked "Default false — ya comprado"
+        bool needsPurchase "Default false — en lista de compras"
+        bool isChecked "Default false — ya comprado hoy"
         int purchasedQuantity "Opcional — cantidad al marcar Check"
         double purchasePrice "Opcional — precio al marcar Check"
+    }
+
+    NEEDED_ITEM {
+        int id PK "Isar autoIncrement"
+        string name "Obligatorio, indexado"
+        int quantity "Opcional"
+        string notes "Opcional"
+        bool isDone "Default false"
+        int linkedProductId "Opcional — vínculo futuro al catálogo"
     }
 
     PRODUCT ||--o{ DISTRIBUTOR : "distributors (IsarLinks)"
@@ -86,62 +116,52 @@ erDiagram
 
 | Relación            | Tipo Isar       | Cardinalidad | Descripción |
 |---------------------|-----------------|--------------|-------------|
-| `distributors`      | `IsarLinks`     | N : M        | Distribuidores donde **habitualmente** se consigue el producto. Se asignan al crear/editar en el Catálogo. |
-| `finalDistributor`  | `IsarLink`      | N : 1        | Distribuidor donde se **compró finalmente** el producto. Se asigna al completar el Diálogo de Check. |
+| `distributors`      | `IsarLinks`     | N : M        | Distribuidores donde **habitualmente** se consigue el producto. |
+| `finalDistributor`  | `IsarLink`      | N : 1        | Distribuidor donde se **compró finalmente** el producto. |
 
-**Estados del producto según `isChecked`:**
+### Estados del producto (`needsPurchase` + `isChecked`)
 
-- `isChecked == false` → aparece en la pestaña **Por Comprar**.
-- `isChecked == true` → aparece en **Ya Comprados**, con `purchasedQuantity`, `purchasePrice` y `finalDistributor` poblados.
+| `needsPurchase` | `isChecked` | Dónde aparece |
+|-----------------|-------------|---------------|
+| false | false | Solo Catálogo |
+| true | false | Por Comprar |
+| false | true | Ya Comprados |
+| true | true | No ocurre — se limpia al comprar |
+
+**Faltantes rápidos (`NeededItem`):**
+
+- `isDone == false` → aparece mezclado en **Por Comprar**.
+- Al marcar conseguido → `isDone = true`, sale de la lista (no va a Ya Comprados).
 
 ## Diagrama de flujo de usuario
 
-Recorrido completo desde la pantalla principal hasta compartir el resumen del día.
-
 ```mermaid
 flowchart TD
-    A[Inicio de la app] --> B[Pestaña Compras — Lista principal]
-    B --> B1[Barra de búsqueda por nombre]
-    B1 --> C{¿Hay productos por comprar?}
-    C -- No --> D[Ir a Catálogo]
-    D --> E[Tocar Nuevo producto]
-    E --> F[Completar formulario]
-    F --> F1[Nombre del producto]
-    F --> F2[Stock en tienda opcional]
-    F --> F3[Tomar foto o elegir de galería]
-    F --> F4[Seleccionar distribuidores habituales]
-    F --> G[Guardar producto en Isar]
-    G --> H[Volver a pestaña Compras]
-    H --> I[Producto visible en Por Comprar]
+    A[Inicio de la app] --> B[Pestaña Compras]
+    B --> C{¿Qué falta?}
 
-    C -- Sí --> I
-    I --> J[Usuario toca botón Check verde]
-    J --> K[Diálogo emergente de compra]
-    K --> K1["¿Cuántos compraste? — stepper +/−"]
-    K --> K2["¿A qué precio? — campo numérico"]
-    K --> K3["¿Dónde lo compraste? — dropdown distribuidores"]
-    K --> L{¿Datos completos?}
-    L -- No --> K
-    L -- Sí --> M[Guardar: isChecked = true]
-    M --> N[Registrar cantidad, precio y finalDistributor]
-    N --> O[Producto se mueve a Ya Comprados]
-    O --> P[Banner de resumen se actualiza]
-    P --> Q[SnackBar de confirmación]
+    C --> D[Catálogo — marcar Lo necesito]
+    C --> E[Faltante rápido — anotar texto libre]
+    C --> F[Agregar producto del catálogo]
 
-    B --> R[Pestaña Ya Comprados]
-    R --> R1[Banner: unidades y total invertido]
-    R --> R2{¿Se equivocó al registrar?}
-    R2 -- Sí --> R3[Botón Deshacer en tarjeta]
-    R3 --> R4[Confirmar y resetPurchase en Isar]
-    R4 --> R5[Producto vuelve a Por Comprar]
-    R2 -- No --> R6[Botón Compartir en AppBar]
-    R6 --> R7[Generar reporte en texto plano]
-    R7 --> R8[Share nativo: WhatsApp, Telegram, correo, notas]
+    D --> G[Por Comprar — lista unificada]
+    E --> G
+    F --> G
 
-    B --> S[Pestaña Distribuidores]
-    S --> T[Agregar proveedor con FAB +]
-    T --> U[Nombre, ubicación y teléfono]
-    U --> V[Distribuidor disponible en dropdown del Check]
+    G --> H{¿Qué tipo de ítem?}
+    H -- Producto catálogo --> I[Check — cantidad, precio, distribuidor]
+    H -- Faltante rápido --> J[Marcar conseguido]
+
+    I --> K[Ya Comprados + resumen del día]
+    J --> L[Quita de Por Comprar]
+
+    K --> M{¿Error al registrar?}
+    M -- Sí --> N[Deshacer — vuelve a Por Comprar]
+    M -- No --> O[Compartir resumen]
+
+    B --> P[Pestaña Distribuidores]
+    P --> Q[Capturar GPS del local]
+    Q --> R[Abrir en Google Maps]
 ```
 
 ## Formato del reporte compartido
@@ -176,6 +196,9 @@ dart run build_runner build --delete-conflicting-outputs
 
 # Ejecutar en dispositivo o emulador
 flutter run
+
+# Compilar APK
+flutter build apk --release
 ```
 
 ### Regenerar modelos en desarrollo
@@ -188,20 +211,16 @@ dart run build_runner watch --delete-conflicting-outputs
 
 | Elemento              | Estándar aplicado                                      |
 |-----------------------|--------------------------------------------------------|
-| Texto de cuerpo       | 18 sp mínimo                                           |
-| Etiquetas de campos   | 20 sp, negrita                                         |
-| Títulos de sección    | 22–26 sp                                               |
-| Botones principales   | Altura mínima 56 dp                                    |
-| Botones +/− (Check)   | Área táctil mínima 48×48 dp                            |
-| Botón compartir       | Área táctil mínima 48×48 dp en AppBar                  |
-| Contraste             | Verde oscuro (#0D5C2E) sobre fondo claro (#F8F9FA)     |
-| Imágenes en tarjetas  | Contenedor fijo + `BoxFit.cover` (sin deformación)     |
+| Texto de cuerpo       | 15 sp mínimo                                           |
+| Etiquetas de campos   | 15 sp, negrita                                         |
+| Títulos de sección    | 17–20 sp                                               |
+| Botones principales   | Altura mínima 48 dp                                    |
+| Botones +/− (Check)   | Área táctil mínima 44×44 dp                            |
+| Contraste             | Verde (#059669) sobre fondo claro (#F8F9FA)            |
 
-## Próximos pasos sugeridos
+## Nota sobre datos existentes
 
-- Filtro por distribuidor en la lista de compras.
-- Exportar resumen a PDF.
-- Soporte `Semantics` ampliado para lectores de pantalla.
+Al introducir `needsPurchase = false` por defecto, un catálogo ya cargado mostrará **Por Comprar vacía** hasta marcar los productos que falten. Es el comportamiento esperado del nuevo modelo.
 
 ## Licencia
 

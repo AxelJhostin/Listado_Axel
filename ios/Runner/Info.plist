@@ -70,5 +70,7 @@
 	<string>Necesitamos la cámara para fotografiar productos.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Necesitamos acceso a fotos para seleccionar imágenes de productos.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Necesitamos tu ubicación para guardar dónde está el distribuidor en el mapa.</string>
 </dict>
 </plist>

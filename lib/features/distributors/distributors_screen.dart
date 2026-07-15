@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../database/isar_service.dart';
 import '../../models/distributor.dart';
+import '../../services/location_service.dart';
 import '../../theme/app_theme.dart';
 import 'distributor_form_dialog.dart';
 
@@ -42,6 +43,27 @@ class _DistributorsScreenState extends State<DistributorsScreen> {
     if (saved != null) {
       await IsarService.instance.saveDistributor(saved);
       await _load();
+    }
+  }
+
+  Future<void> _openMaps(Distributor distributor) async {
+    if (!distributor.hasGpsLocation) return;
+
+    try {
+      await LocationService.openInMaps(
+        latitude: distributor.latitude!,
+        longitude: distributor.longitude!,
+        label: distributor.name,
+      );
+    } on LocationException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -98,12 +120,37 @@ class _DistributorsScreenState extends State<DistributorsScreen> {
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            if (d.hasGpsLocation) ...[
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.location_on_rounded,
+                                    size: 16,
+                                    color: AppTheme.primary,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      LocationService.formatCoordinates(
+                                        d.latitude!,
+                                        d.longitude!,
+                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(color: AppTheme.primary),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                             if (d.locationNotes != null) ...[
                               const SizedBox(height: 4),
                               Row(
                                 children: [
                                   const Icon(
-                                    Icons.place_outlined,
+                                    Icons.notes_outlined,
                                     size: 16,
                                     color: AppTheme.onSurfaceMuted,
                                   ),
@@ -138,10 +185,24 @@ class _DistributorsScreenState extends State<DistributorsScreen> {
                             ],
                           ],
                         ),
-                        trailing: const Icon(
-                          Icons.chevron_right_rounded,
-                          size: 22,
-                          color: AppTheme.onSurfaceMuted,
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (d.hasGpsLocation)
+                              IconButton(
+                                onPressed: () => _openMaps(d),
+                                tooltip: 'Abrir en mapa',
+                                icon: const Icon(
+                                  Icons.map_rounded,
+                                  color: AppTheme.primary,
+                                ),
+                              ),
+                            const Icon(
+                              Icons.chevron_right_rounded,
+                              size: 22,
+                              color: AppTheme.onSurfaceMuted,
+                            ),
+                          ],
                         ),
                         onTap: () => _addOrEdit(d),
                       ),

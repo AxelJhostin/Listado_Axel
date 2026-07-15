@@ -11,15 +11,19 @@ class ProductCard extends StatelessWidget {
     required this.product,
     required this.showCheckButton,
     this.showUndoButton = false,
+    this.showRemoveFromListButton = false,
     this.onCheck,
     this.onUndo,
+    this.onRemoveFromList,
   });
 
   final Product product;
   final bool showCheckButton;
   final bool showUndoButton;
+  final bool showRemoveFromListButton;
   final VoidCallback? onCheck;
   final VoidCallback? onUndo;
+  final VoidCallback? onRemoveFromList;
 
   @override
   Widget build(BuildContext context) {
@@ -90,6 +94,17 @@ class ProductCard extends StatelessWidget {
                   ],
                 ),
               ),
+              if (showRemoveFromListButton)
+                IconButton.outlined(
+                  onPressed: onRemoveFromList,
+                  tooltip: 'Quitar de lista',
+                  style: IconButton.styleFrom(
+                    foregroundColor: AppTheme.onSurfaceMuted,
+                    side: const BorderSide(color: AppTheme.cardBorder),
+                    minimumSize: const Size(44, 44),
+                  ),
+                  icon: const Icon(Icons.close_rounded, size: 20),
+                ),
               if (showCheckButton)
                 IconButton.filled(
                   onPressed: onCheck,
