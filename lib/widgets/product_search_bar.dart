@@ -22,31 +22,33 @@ class ProductSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
       child: Semantics(
         label: semanticsLabel,
         child: TextField(
           controller: controller,
           onChanged: onChanged,
-          style: const TextStyle(fontSize: AppTheme.fontBody),
+          style: const TextStyle(
+            fontSize: AppTheme.fontBody,
+            color: AppTheme.onSurface,
+          ),
           decoration: InputDecoration(
             hintText: hintText,
-            prefixIcon: const Icon(Icons.search, size: 28),
+            filled: true,
+            fillColor: AppTheme.surfaceCard,
+            prefixIcon: const Icon(
+              Icons.search_rounded,
+              size: 22,
+              color: AppTheme.onSurfaceMuted,
+            ),
             suffixIcon: controller.text.isNotEmpty
                 ? IconButton(
                     onPressed: onClear,
-                    icon: const Icon(Icons.clear, size: 28),
+                    icon: const Icon(Icons.close_rounded, size: 20),
                     tooltip: 'Limpiar búsqueda',
-                    constraints: const BoxConstraints(
-                      minWidth: AppTheme.minAccessibleTouch,
-                      minHeight: AppTheme.minAccessibleTouch,
-                    ),
                   )
                 : null,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 18,
-            ),
+            contentPadding: const EdgeInsets.symmetric(vertical: 12),
           ),
         ),
       ),

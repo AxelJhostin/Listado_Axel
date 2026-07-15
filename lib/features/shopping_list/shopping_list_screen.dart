@@ -172,10 +172,6 @@ class _ShoppingListScreenState extends State<ShoppingListScreen>
         bottom: TabBar(
           controller: _tabController,
           indicatorWeight: 4,
-          labelStyle: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
           tabs: [
             Tab(text: 'Por Comprar (${filteredToBuy.length})'),
             Tab(text: 'Ya Comprados (${filteredPurchased.length})'),
@@ -220,6 +216,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen>
     if (allProducts.isEmpty) {
       return _emptyState(
         'No hay productos pendientes.\nAgrega productos en el Catálogo.',
+        icon: Icons.shopping_bag_outlined,
       );
     }
 
@@ -246,7 +243,10 @@ class _ShoppingListScreenState extends State<ShoppingListScreen>
     required List<Product> allPurchased,
   }) {
     if (allPurchased.isEmpty) {
-      return _emptyState('Aún no has comprado nada hoy.');
+      return _emptyState(
+        'Aún no has comprado nada hoy.',
+        icon: Icons.check_circle_outline_rounded,
+      );
     }
 
     if (products.isEmpty) {
@@ -281,14 +281,23 @@ class _ShoppingListScreenState extends State<ShoppingListScreen>
     );
   }
 
-  Widget _emptyState(String message) {
+  Widget _emptyState(String message, {IconData icon = Icons.inbox_rounded}) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleLarge,
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 48, color: AppTheme.onSurfaceMuted),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: AppTheme.onSurfaceMuted,
+                  ),
+            ),
+          ],
         ),
       ),
     );

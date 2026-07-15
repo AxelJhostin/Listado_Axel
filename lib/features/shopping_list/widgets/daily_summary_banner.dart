@@ -18,52 +18,75 @@ class DailySummaryBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final currency = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
 
-    return Card(
-      margin: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-      color: AppTheme.primary,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Row(
-              children: [
-                Icon(Icons.receipt_long, color: AppTheme.onPrimary, size: 28),
-                SizedBox(width: 10),
-                Text(
-                  'Resumen del día',
-                  style: TextStyle(
-                    fontSize: AppTheme.fontTitle,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.onPrimary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _SummaryStat(
-                    label: 'Unidades compradas',
-                    value: '$_totalUnits',
-                  ),
-                ),
-                Container(
-                  width: 1,
-                  height: 48,
-                  color: AppTheme.onPrimary.withValues(alpha: 0.3),
-                ),
-                Expanded(
-                  child: _SummaryStat(
-                    label: 'Total invertido',
-                    value: currency.format(_totalSpent),
-                  ),
-                ),
-              ],
-            ),
-          ],
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppTheme.primary, AppTheme.primaryDark],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primary.withValues(alpha: 0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.receipt_long_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'Resumen del día',
+                style: TextStyle(
+                  fontSize: AppTheme.fontTitle,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _SummaryStat(
+                  label: 'Unidades',
+                  value: '$_totalUnits',
+                ),
+              ),
+              Container(
+                width: 1,
+                height: 36,
+                color: Colors.white.withValues(alpha: 0.25),
+              ),
+              Expanded(
+                child: _SummaryStat(
+                  label: 'Total',
+                  value: currency.format(_totalSpent),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -86,17 +109,18 @@ class _SummaryStat extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: AppTheme.fontHeadline,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.onPrimary,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              letterSpacing: -0.3,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 16,
-              color: AppTheme.onPrimary.withValues(alpha: 0.9),
+              fontSize: 12,
+              color: Colors.white.withValues(alpha: 0.85),
             ),
           ),
         ],

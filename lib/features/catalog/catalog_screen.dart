@@ -63,10 +63,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Catálogo de Productos')),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: () => _openForm(),
-        icon: const Icon(Icons.add, size: 28),
-        label: const Text('Nuevo producto', style: TextStyle(fontSize: 18)),
+        tooltip: 'Nuevo producto',
+        child: const Icon(Icons.add_rounded),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -109,14 +109,23 @@ class _CatalogScreenState extends State<CatalogScreen> {
     );
   }
 
-  Widget _emptyState(String message) {
+  Widget _emptyState(String message, {IconData icon = Icons.inventory_2_outlined}) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleLarge,
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 48, color: AppTheme.onSurfaceMuted),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: AppTheme.onSurfaceMuted,
+                  ),
+            ),
+          ],
         ),
       ),
     );
@@ -144,30 +153,26 @@ class _CatalogProductCard extends StatelessWidget {
         label: 'Editar producto ${product.name}',
         child: ListTile(
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 12,
+            horizontal: 16,
+            vertical: 4,
           ),
-          minVerticalPadding: AppTheme.minAccessibleTouch / 2,
           title: Text(
             product.name,
-            style: const TextStyle(
-              fontSize: AppTheme.fontLabel,
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(context).textTheme.titleMedium,
           ),
           subtitle: product.description != null
-              ? Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Text(
-                    product.description!,
-                    style: TextStyle(
-                      fontSize: AppTheme.fontBody,
-                      color: AppTheme.onSurface.withValues(alpha: 0.7),
-                    ),
-                  ),
+              ? Text(
+                  product.description!,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 )
               : null,
-          trailing: const Icon(Icons.chevron_right, size: 32),
+          trailing: Icon(
+            Icons.chevron_right_rounded,
+            size: 22,
+            color: AppTheme.onSurfaceMuted,
+          ),
           onTap: onTap,
         ),
       ),

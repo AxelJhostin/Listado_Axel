@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:isar/isar.dart';
 import 'package:path/path.dart' as p;
@@ -121,7 +122,10 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 hintText: 'Ej: Arroz, Aceite, Detergente…',
                 helperText: 'Campo obligatorio',
               ),
-              style: const TextStyle(fontSize: AppTheme.fontBody),
+              style: const TextStyle(
+                fontSize: AppTheme.fontBody,
+                color: AppTheme.onSurface,
+              ),
               validator: (v) => v == null || v.trim().isEmpty
                   ? 'El nombre es obligatorio'
                   : null,
@@ -130,12 +134,24 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             TextFormField(
               controller: _stockController,
               keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: const InputDecoration(
                 labelText: 'Stock actual en tienda',
                 hintText: 'Cuántas unidades quedan en tu local',
-                helperText: 'Opcional — ayuda a ver la urgencia',
+                helperText: 'Opcional — solo números enteros',
               ),
-              style: const TextStyle(fontSize: AppTheme.fontBody),
+              style: const TextStyle(
+                fontSize: AppTheme.fontBody,
+                color: AppTheme.onSurface,
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return null;
+                final stock = int.tryParse(value.trim());
+                if (stock == null || stock < 0) {
+                  return 'Ingresa un número válido (0 o más)';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -155,11 +171,18 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             ),
             const SizedBox(height: 8),
             if (_allDistributors.isEmpty)
-              const Text('Aún no hay distribuidores registrados.')
+              const Text(
+                'Aún no hay distribuidores registrados.',
+                style: TextStyle(
+                  fontSize: AppTheme.fontBody,
+                  color: AppTheme.onSurfaceMuted,
+                ),
+              )
             else
               ..._allDistributors.map(
                 (d) => CheckboxListTile(
                   value: _selectedDistributorIds.contains(d.id),
+                  activeColor: AppTheme.primary,
                   onChanged: (checked) {
                     setState(() {
                       if (checked == true) {
@@ -169,7 +192,13 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       }
                     });
                   },
-                  title: Text(d.name, style: const TextStyle(fontSize: 18)),
+                  title: Text(
+                    d.name,
+                    style: const TextStyle(
+                      fontSize: AppTheme.fontBody,
+                      color: AppTheme.onSurface,
+                    ),
+                  ),
                   controlAffinity: ListTileControlAffinity.leading,
                   contentPadding: EdgeInsets.zero,
                 ),
@@ -234,14 +263,17 @@ class _PhotoPicker extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppTheme.cardBorder),
                   ),
-                  child: const Column(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.add_a_photo, size: 48, color: Colors.grey),
                       SizedBox(height: 8),
                       Text(
                         'Sin foto — toca un botón abajo',
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppTheme.onSurfaceMuted,
+                        ),
                       ),
                     ],
                   ),

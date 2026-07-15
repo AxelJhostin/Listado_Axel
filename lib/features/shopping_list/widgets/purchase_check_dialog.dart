@@ -28,6 +28,7 @@ class PurchaseCheckDialog extends StatefulWidget {
 }
 
 class _PurchaseCheckDialogState extends State<PurchaseCheckDialog> {
+  final _formKey = GlobalKey<FormState>();
   int _quantity = 1;
   final _priceController = TextEditingController();
   List<Distributor> _distributors = [];
@@ -49,10 +50,28 @@ class _PurchaseCheckDialogState extends State<PurchaseCheckDialog> {
     });
   }
 
+  double? get _parsedPrice =>
+      double.tryParse(_priceController.text.replaceAll(',', '.'));
+
   bool get _canSave =>
       _quantity > 0 &&
       _selectedDistributorId != null &&
-      double.tryParse(_priceController.text.replaceAll(',', '.')) != null;
+      _parsedPrice != null &&
+      _parsedPrice! > 0;
+
+  void _save() {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedDistributorId == null) return;
+
+    Navigator.pop(
+      context,
+      PurchaseResult(
+        quantity: _quantity,
+        price: _parsedPrice!,
+        distributorId: _selectedDistributorId!,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,70 +82,98 @@ class _PurchaseCheckDialogState extends State<PurchaseCheckDialog> {
               height: 120,
               child: Center(child: CircularProgressIndicator()),
             )
-          : SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const _SectionLabel('¿Cuántos compraste?'),
-                  const SizedBox(height: 12),
-                  _QuantityStepper(
-                    value: _quantity,
-                    onChanged: (v) => setState(() => _quantity = v),
-                  ),
-                  const SizedBox(height: 24),
-                  TextField(
-                    controller: _priceController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
+          : Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const _SectionLabel('¿Cuántos compraste?'),
+                    const SizedBox(height: 12),
+                    _QuantityStepper(
+                      value: _quantity,
+                      onChanged: (v) => setState(() => _quantity = v),
                     ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
-                    ],
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    decoration: const InputDecoration(
-                      labelText: '¿A qué precio?',
-                      prefixText: '\$ ',
-                      hintText: '0.00',
-                      helperText: 'Escribe el precio que pagaste',
-                    ),
-                    onChanged: (_) => setState(() {}),
-                  ),
-                  const SizedBox(height: 24),
-                  if (_distributors.isEmpty)
-                    const Text(
-                      'No hay distribuidores. Agrégalos en la pestaña Distribuidores.',
-                      style: TextStyle(
-                        fontSize: AppTheme.fontBody,
-                        color: AppTheme.warning,
-                        fontWeight: FontWeight.w600,
+                    const SizedBox(height: 24),
+                    TextFormField(
+                      controller: _priceController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
                       ),
-                    )
-                  else
-                    DropdownButtonFormField<Id>(
-                      initialValue: _selectedDistributorId,
-                      items: _distributors
-                          .map(
-                            (d) => DropdownMenuItem(
-                              value: d.id,
-                              child: Text(
-                                d.name,
-                                style: const TextStyle(fontSize: AppTheme.fontBody),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) =>
-                          setState(() => _selectedDistributorId = v),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
+                      ],
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.onSurface,
+                      ),
                       decoration: const InputDecoration(
-                        labelText: '¿Dónde lo compraste?',
-                        helperText: 'Selecciona el distribuidor',
+                        labelText: '¿A qué precio?',
+                        prefixText: '\$ ',
+                        hintText: '0.00',
+                        helperText: 'Escribe el precio que pagaste',
                       ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Ingresa el precio';
+                        }
+                        final price = double.tryParse(
+                          value.replaceAll(',', '.'),
+                        );
+                        if (price == null || price <= 0) {
+                          return 'El precio debe ser mayor a 0';
+                        }
+                        return null;
+                      },
+                      onChanged: (_) => setState(() {}),
                     ),
-                ],
+                    const SizedBox(height: 24),
+                    if (_distributors.isEmpty)
+                      const Text(
+                        'No hay distribuidores. Agrégalos en la pestaña Distribuidores.',
+                        style: TextStyle(
+                          fontSize: AppTheme.fontBody,
+                          color: AppTheme.warning,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      )
+                    else
+                      DropdownButtonFormField<Id>(
+                        initialValue: _selectedDistributorId,
+                        isExpanded: true,
+                        style: const TextStyle(
+                          fontSize: AppTheme.fontBody,
+                          color: AppTheme.onSurface,
+                        ),
+                        dropdownColor: AppTheme.surfaceCard,
+                        iconEnabledColor: AppTheme.primary,
+                        items: _distributors
+                            .map(
+                              (d) => DropdownMenuItem(
+                                value: d.id,
+                                child: Text(
+                                  d.name,
+                                  style: const TextStyle(
+                                    fontSize: AppTheme.fontBody,
+                                    color: AppTheme.onSurface,
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (v) =>
+                            setState(() => _selectedDistributorId = v),
+                        decoration: const InputDecoration(
+                          labelText: '¿Dónde lo compraste?',
+                          helperText: 'Selecciona el distribuidor',
+                        ),
+                        validator: (value) =>
+                            value == null ? 'Selecciona un distribuidor' : null,
+                      ),
+                  ],
+                ),
               ),
             ),
       actions: [
@@ -135,20 +182,7 @@ class _PurchaseCheckDialogState extends State<PurchaseCheckDialog> {
           child: const Text('Cancelar'),
         ),
         FilledButton(
-          onPressed: _canSave
-              ? () {
-                  Navigator.pop(
-                    context,
-                    PurchaseResult(
-                      quantity: _quantity,
-                      price: double.parse(
-                        _priceController.text.replaceAll(',', '.'),
-                      ),
-                      distributorId: _selectedDistributorId!,
-                    ),
-                  );
-                }
-              : null,
+          onPressed: _canSave ? _save : null,
           child: const Text('Guardar compra'),
         ),
       ],
@@ -200,11 +234,22 @@ class _QuantityStepper extends StatelessWidget {
             onPressed: value > 1 ? () => onChanged(value - 1) : null,
           ),
           Container(
-            width: 88,
+            width: 72,
+            height: 44,
             alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F2F5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.cardBorder),
+            ),
             child: Text(
               '$value',
-              style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.onSurface,
+                letterSpacing: -0.5,
+              ),
             ),
           ),
           _BigIconButton(
@@ -242,10 +287,10 @@ class _BigIconButton extends StatelessWidget {
           onTap: onPressed,
           borderRadius: BorderRadius.circular(12),
           child: SizedBox(
-            width: AppTheme.minAccessibleTouch,
-            height: AppTheme.minAccessibleTouch,
+            width: 40,
+            height: 40,
             child: Center(
-              child: Icon(icon, size: 32, color: Colors.white),
+              child: Icon(icon, size: 20, color: Colors.white),
             ),
           ),
         ),

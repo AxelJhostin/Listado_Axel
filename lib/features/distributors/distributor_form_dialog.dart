@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../models/distributor.dart';
 import '../../theme/app_theme.dart';
@@ -68,7 +69,10 @@ class _DistributorFormDialogState extends State<DistributorFormDialog> {
                   hintText: 'Ej: Distribuidora El Centro',
                   helperText: 'Campo obligatorio',
                 ),
-                style: const TextStyle(fontSize: AppTheme.fontBody),
+                style: const TextStyle(
+                  fontSize: AppTheme.fontBody,
+                  color: AppTheme.onSurface,
+                ),
                 validator: (v) => v == null || v.trim().isEmpty
                     ? 'Nombre obligatorio'
                     : null,
@@ -81,18 +85,27 @@ class _DistributorFormDialogState extends State<DistributorFormDialog> {
                   hintText: 'Pasillo 4, local 12, o dirección',
                   helperText: 'Opcional — para encontrarlo rápido',
                 ),
-                style: const TextStyle(fontSize: AppTheme.fontBody),
+                style: const TextStyle(
+                  fontSize: AppTheme.fontBody,
+                  color: AppTheme.onSurface,
+                ),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[\d+\-\s()]')),
+                ],
                 decoration: const InputDecoration(
                   labelText: 'Teléfono de contacto',
                   hintText: 'Número para llamar al proveedor',
                   helperText: 'Opcional',
                 ),
-                style: const TextStyle(fontSize: AppTheme.fontBody),
+                style: const TextStyle(
+                  fontSize: AppTheme.fontBody,
+                  color: AppTheme.onSurface,
+                ),
               ),
             ],
           ),

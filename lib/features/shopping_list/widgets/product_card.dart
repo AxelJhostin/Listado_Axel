@@ -30,140 +30,120 @@ class ProductCard extends StatelessWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _ProductThumbnail(path: product.localImagePath),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  if (product.currentStock != null) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: product.currentStock! <= 2
-                            ? AppTheme.warning.withValues(alpha: 0.15)
-                            : Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'Stock en tienda: ${product.currentStock}',
-                        style: TextStyle(
-                          fontSize: AppTheme.fontBody,
-                          fontWeight: FontWeight.bold,
-                          color: product.currentStock! <= 2
-                              ? AppTheme.warning
-                              : AppTheme.onSurface,
-                        ),
-                      ),
-                    ),
-                  ],
-                  if (distributors.isNotEmpty) ...[
-                    const SizedBox(height: 8),
+            children: [
+              _ProductThumbnail(path: product.localImagePath),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      'Sugerido en: ${distributors.join(', ')}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: AppTheme.onSurface.withValues(alpha: 0.7),
-                      ),
+                      product.name,
+                      style: Theme.of(context).textTheme.titleMedium,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                  if (!showCheckButton && product.purchasedQuantity != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      'Comprado: ${product.purchasedQuantity} u. · '
-                      '\$${product.purchasePrice?.toStringAsFixed(2) ?? '—'}',
-                      style: const TextStyle(
-                        fontSize: AppTheme.fontBody,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.success,
-                      ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        if (product.currentStock != null)
+                          _InfoChip(
+                            label: 'Stock: ${product.currentStock}',
+                            color: product.currentStock! <= 2
+                                ? AppTheme.warning
+                                : AppTheme.onSurfaceMuted,
+                            background: product.currentStock! <= 2
+                                ? const Color(0xFFFFFBEB)
+                                : AppTheme.surface,
+                          ),
+                        if (!showCheckButton &&
+                            product.purchasedQuantity != null)
+                          _InfoChip(
+                            label:
+                                '${product.purchasedQuantity} u. · \$${product.purchasePrice?.toStringAsFixed(2) ?? '—'}',
+                            color: AppTheme.success,
+                            background: AppTheme.primaryTint,
+                          ),
+                      ],
                     ),
-                    if (product.finalDistributor.value != null) ...[
+                    if (distributors.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
-                        'En: ${product.finalDistributor.value!.name}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: AppTheme.onSurface.withValues(alpha: 0.7),
-                        ),
+                        distributors.join(' · '),
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    if (!showCheckButton &&
+                        product.finalDistributor.value != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        product.finalDistributor.value!.name,
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
                   ],
-                ],
-              ),
-            ),
-            if (showCheckButton) ...[
-              const SizedBox(width: 8),
-              Semantics(
-                button: true,
-                label: 'Marcar ${product.name} como comprado',
-                child: SizedBox(
-                  width: 80,
-                  child: FilledButton(
-                    onPressed: onCheck,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppTheme.success,
-                      minimumSize: const Size(
-                        AppTheme.minAccessibleTouch,
-                        AppTheme.minTouchTarget,
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: const Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.check_circle, size: 32),
-                        SizedBox(height: 4),
-                        Text('Check', style: TextStyle(fontSize: 16)),
-                      ],
-                    ),
-                  ),
                 ),
               ),
-            ],
-            if (showUndoButton) ...[
-              const SizedBox(width: 8),
-              Semantics(
-                button: true,
-                label: 'Deshacer compra de ${product.name}',
-                child: SizedBox(
-                  width: 80,
-                  child: OutlinedButton(
-                    onPressed: onUndo,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.warning,
-                      side: const BorderSide(color: AppTheme.warning, width: 2),
-                      minimumSize: const Size(
-                        AppTheme.minAccessibleTouch,
-                        AppTheme.minTouchTarget,
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: const Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.undo, size: 32),
-                        SizedBox(height: 4),
-                        Text('Deshacer', style: TextStyle(fontSize: 14)),
-                      ],
-                    ),
+              if (showCheckButton)
+                IconButton.filled(
+                  onPressed: onCheck,
+                  tooltip: 'Marcar comprado',
+                  style: IconButton.styleFrom(
+                    backgroundColor: AppTheme.success,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(44, 44),
                   ),
+                  icon: const Icon(Icons.check_rounded, size: 22),
                 ),
-              ),
+              if (showUndoButton)
+                IconButton.outlined(
+                  onPressed: onUndo,
+                  tooltip: 'Deshacer compra',
+                  style: IconButton.styleFrom(
+                    foregroundColor: AppTheme.warning,
+                    side: const BorderSide(color: AppTheme.cardBorder),
+                    minimumSize: const Size(44, 44),
+                  ),
+                  icon: const Icon(Icons.undo_rounded, size: 20),
+                ),
             ],
-          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  const _InfoChip({
+    required this.label,
+    required this.color,
+    required this.background,
+  });
+
+  final String label;
+  final Color color;
+  final Color background;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: color,
         ),
       ),
     );
@@ -177,31 +157,21 @@ class _ProductThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const size = 80.0;
+    const size = 56.0;
 
-    return SizedBox(
-      width: size,
-      height: size,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+      child: SizedBox(
+        width: size,
+        height: size,
         child: path != null && File(path!).existsSync()
-            ? Image.file(
-                File(path!),
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
-              )
-            : Container(
-                width: size,
-                height: size,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  border: Border.all(color: AppTheme.cardBorder),
-                ),
+            ? Image.file(File(path!), fit: BoxFit.cover)
+            : ColoredBox(
+                color: AppTheme.surface,
                 child: const Icon(
                   Icons.image_outlined,
-                  size: 36,
-                  color: Colors.grey,
+                  size: 24,
+                  color: AppTheme.onSurfaceMuted,
                 ),
               ),
       ),

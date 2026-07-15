@@ -48,27 +48,32 @@ class _HomeShellState extends State<HomeShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_index],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.shopping_cart_outlined, size: 28),
-            selectedIcon: Icon(Icons.shopping_cart, size: 28),
-            label: 'Compras',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.inventory_2_outlined, size: 28),
-            selectedIcon: Icon(Icons.inventory_2, size: 28),
-            label: 'Catálogo',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.store_outlined, size: 28),
-            selectedIcon: Icon(Icons.store, size: 28),
-            label: 'Distribuidores',
-          ),
-        ],
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: AppTheme.cardBorder)),
+        ),
+        child: NavigationBar(
+          selectedIndex: _index,
+          onDestinationSelected: (i) => setState(() => _index = i),
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.shopping_cart_outlined),
+              selectedIcon: Icon(Icons.shopping_cart_rounded),
+              label: 'Compras',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.inventory_2_outlined),
+              selectedIcon: Icon(Icons.inventory_2_rounded),
+              label: 'Catálogo',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.storefront_outlined),
+              selectedIcon: Icon(Icons.storefront_rounded),
+              label: 'Distribuidores',
+            ),
+          ],
+        ),
       ),
     );
   }

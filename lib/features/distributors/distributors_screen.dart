@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../database/isar_service.dart';
 import '../../models/distributor.dart';
+import '../../theme/app_theme.dart';
 import 'distributor_form_dialog.dart';
 
 class DistributorsScreen extends StatefulWidget {
@@ -48,21 +49,34 @@ class _DistributorsScreenState extends State<DistributorsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Distribuidores')),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: () => _addOrEdit(),
-        icon: const Icon(Icons.add, size: 32),
-        label: const Text('Nuevo', style: TextStyle(fontSize: 18)),
+        tooltip: 'Nuevo distribuidor',
+        child: const Icon(Icons.add_rounded),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _distributors.isEmpty
-              ? const Center(
+              ? Center(
                   child: Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Text(
-                      'No hay distribuidores.\nToca "+" para agregar uno.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 20),
+                    padding: const EdgeInsets.all(40),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.storefront_outlined,
+                          size: 48,
+                          color: AppTheme.onSurfaceMuted,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No hay distribuidores.\nToca + para agregar uno.',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                color: AppTheme.onSurfaceMuted,
+                              ),
+                        ),
+                      ],
                     ),
                   ),
                 )
@@ -73,48 +87,62 @@ class _DistributorsScreenState extends State<DistributorsScreen> {
                     final d = _distributors[i];
                     return Card(
                       child: ListTile(
-                        contentPadding: const EdgeInsets.all(20),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         title: Text(
                           d.name,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium,
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (d.locationNotes != null) ...[
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 4),
                               Row(
                                 children: [
-                                  const Icon(Icons.place, size: 20),
-                                  const SizedBox(width: 6),
+                                  const Icon(
+                                    Icons.place_outlined,
+                                    size: 16,
+                                    color: AppTheme.onSurfaceMuted,
+                                  ),
+                                  const SizedBox(width: 4),
                                   Expanded(
                                     child: Text(
                                       d.locationNotes!,
-                                      style: const TextStyle(fontSize: 17),
+                                      style:
+                                          Theme.of(context).textTheme.bodyMedium,
                                     ),
                                   ),
                                 ],
                               ),
                             ],
                             if (d.phoneNumber != null) ...[
-                              const SizedBox(height: 6),
+                              const SizedBox(height: 2),
                               Row(
                                 children: [
-                                  const Icon(Icons.phone, size: 20),
-                                  const SizedBox(width: 6),
+                                  const Icon(
+                                    Icons.phone_outlined,
+                                    size: 16,
+                                    color: AppTheme.onSurfaceMuted,
+                                  ),
+                                  const SizedBox(width: 4),
                                   Text(
                                     d.phoneNumber!,
-                                    style: const TextStyle(fontSize: 17),
+                                    style:
+                                        Theme.of(context).textTheme.bodyMedium,
                                   ),
                                 ],
                               ),
                             ],
                           ],
                         ),
-                        trailing: const Icon(Icons.edit, size: 28),
+                        trailing: const Icon(
+                          Icons.chevron_right_rounded,
+                          size: 22,
+                          color: AppTheme.onSurfaceMuted,
+                        ),
                         onTap: () => _addOrEdit(d),
                       ),
                     );
