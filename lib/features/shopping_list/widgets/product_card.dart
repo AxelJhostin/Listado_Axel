@@ -10,12 +10,16 @@ class ProductCard extends StatelessWidget {
     super.key,
     required this.product,
     required this.showCheckButton,
+    this.showUndoButton = false,
     this.onCheck,
+    this.onUndo,
   });
 
   final Product product;
   final bool showCheckButton;
+  final bool showUndoButton;
   final VoidCallback? onCheck;
+  final VoidCallback? onUndo;
 
   @override
   Widget build(BuildContext context) {
@@ -123,6 +127,36 @@ class ProductCard extends StatelessWidget {
                         Icon(Icons.check_circle, size: 32),
                         SizedBox(height: 4),
                         Text('Check', style: TextStyle(fontSize: 16)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+            if (showUndoButton) ...[
+              const SizedBox(width: 8),
+              Semantics(
+                button: true,
+                label: 'Deshacer compra de ${product.name}',
+                child: SizedBox(
+                  width: 80,
+                  child: OutlinedButton(
+                    onPressed: onUndo,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.warning,
+                      side: const BorderSide(color: AppTheme.warning, width: 2),
+                      minimumSize: const Size(
+                        AppTheme.minAccessibleTouch,
+                        AppTheme.minTouchTarget,
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: const Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.undo, size: 32),
+                        SizedBox(height: 4),
+                        Text('Deshacer', style: TextStyle(fontSize: 14)),
                       ],
                     ),
                   ),
